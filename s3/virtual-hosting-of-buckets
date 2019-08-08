@@ -1,0 +1,57 @@
+Here is the link for docuemntation on AWS
+https://docs.aws.amazon.com/AmazonS3/latest/dev//VirtualHosting.html
+and the important tips on using the virtual hosting of buckets are below:
+
+Although Richard posted correctly, I want to emphasize the peculiar behaviors of region-specific endpoints.
+Assuming you have the following buckets in these regions:
+
+eastbucket in region us-east-1
+westbucket in region us-west-1
+
+1. If your bucket is in the us-east-1 (N. Virginia) region, you CANNOT use the full region name when attempting to access the bucket. This is true of both the subdomain / virtual host URL, and the Path URL.
+
+https://eastbucket.s3-us-east-1.amazonaws.com (WRONG - site timeout)
+https://s3-us-east-1.amazonaws.com/eastbucket (WRONG - site timeout)
+
+https://eastbucket.s3.amazonaws.com (correct)
+https://s3.amazon.com/eastbucket (correct)
+
+2. If your bucket is in any other region (for example, us-west-1):
+
+Path URL versions MUST include the full region name in the URL
+https://s3.amazonaws.com/westbucket (WRONG - error XML document)
+https://s3-us-west-1.amazonaws.com/westbucket (correct)
+
+Subdomain / virtual host URL will automatically redirect to the full region name
+https://westbucket.s3.amazonaws.com (correct) automatically redirects to
+https://westbucket.s3-us-west-1.amazonaws.com (correct)
+
+Note the differences side by side:
+
+https://eastbucket.s3.amazonaws.com (correct)
+https://westbucket.s3.amazonaws.com (redirects to full region)
+
+https://s3.amazonaws.com/eastbucket (correct)
+https://s3-us-west-1.amazonaws.com/westbucket (correct)
+
+https://s3-us-east-1.amazonaws.com/eastbucket (WRONG)
+https://s3.amazonaws.com/westbucket (WRONG)
+
+http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+----------------------------------------------------------------------
+And more information from another blogger is here below:
+us-east-1 is a special region, and has 4 ways of referencing buckets in it.
+Essentially, if the url has s3-us-east-1, it flat out fails.
+However, s3.us-east-1 (notice the dot ".") works like a champ no matter which style (below) you use.
+
+Here's what works and what doesn't, using the virtual-hosted style URL.
+The type i've indented here (the 2nd one) doesn't seem to be documented though.
+
+  https://eastbucket.s3.amazonaws.com (WORKS)  
+  -- https://eastbucket.s3.us-east-1.amazonaws.com (WORKS)  
+  https://eastbucket.s3-us-east-1.amazonaws.com (DOESN'T WORK)
+..and here's what works/doesn't work using path-style URLs
+
+  https://s3.amazonaws.com/eastbucket (WORKS)  
+  https://s3.us-east-1.amazonaws.com/eastbucket (WORKS)  
+  https://s3-us-east-1.amazonaws.com/eastbucket (DOESN'T WORK)
